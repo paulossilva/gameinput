@@ -1,0 +1,144 @@
+===========================
+NextBASIC Game Input Driver
+By Paulo Silva
+October, 2020
+===========================
+
+This driver aims to ease game control programming in NextBASIC by providing an easy-to-use and consistent API,
+which prevents the programmer from dealing with low level details such as joystick/keyboard ports, bit masking, key mapping etc.
+Even better, the Game Input Driver provides a way to call predefined NextBASIC procedures (PROCs) for you, so that there's no
+need to test input data read from joystick or keyboard.
+
+
+====================================
+Reading joystick settings (REG 0x05)
+====================================
+
+DRIVER 00, 1 TO %j[, %k]
+
+Returns which joystick/keyboard settings are defined for left and right joystick ports.
+First return value holds left joystick (Joystick 1) selection and the second one, the right joystick selection (Joystick 2). 
+
+Joystick/Keyboard settings can be one of the following:
+
+1 - Sinclair 2 (67890)
+2 - Kempston 2
+3 - Kempston 1
+4 - Megadrive 1
+5 - Cursor
+6 - Megadrive 2
+7 - Sinclair 1 (12345)
+
+=====================================
+Defining joystick settings (REG 0x05)
+=====================================
+
+DRIVER 00, x, y
+
+Changes machine's REG 0x05 settings for left/right joystick ports.
+
+where x means:
+
+2 - left joystick port (Joystick 1)
+3 - right joystick port (Joystick 2)
+
+and y is one the listed joystick/keyboard settings:
+
+1 - Sinclair 2 (67890)
+2 - Kempston 2
+3 - Kempston 1
+4 - Megadrive 1
+5 - Cursor
+6 - Megadrive 2
+7 - Sinclair 1 (12345)
+
+===========================
+Reading input from Joystick
+===========================
+
+Reads a joystick port considering joystick/keyboard selection currently in place.
+
+DRIVER 00, x [,y] [TO %j]
+
+where x can be:
+
+4 - reads left joystick port (Joystick 1)
+5 - reads right joystick port (Joystick 2)
+
+Regardless the joystick selection, values returned by the driver are consistent and independent from the device interface, where each bit indicates a direction/button state.
+
+Bit   Direction/Button
+ 0  -     RIGHT
+ 1  -     LEFT
+ 2  -     DOWN
+ 3  -     UP
+ 4  -     FIRE 1
+ 5  -     FIRE 2
+ 6  -     FIRE 3 (Megadrive only)
+ 7  -     START  (Megadrive only) 
+
+A bit is set (1) when the corresponding direction/button is activated/pressed, and reset (0) otherwise.
+
+Note: When reading the left joystick port (Joystick 1), the driver also reads input from the custom keyboard mapping (which defaults to the QAOP standard).
+
+The second parameter defines the callback option. When set (1), the driver creates PROC calls for each direction and action button when appropriate, so that there's no need to test for bit state in your program.
+Just create and fill in the PROCs with your own logic, following the name pattern used by the Input Driver, and it will call them as needed.
+
+PROC names used are: R1(), L1(), D1(), U1(), F1(), F2(), F3(), for joystick 1's right, left, down and up directions and fire buttons 1, 2 and 3, respectively.
+Likewise, name pattern for joystick 2 are R2(), L2(), D2(), U2(), F4(), F5(), F6().
+
+Use the following example as a tamplate:
+
+0100 DRIVER 00, 4, 1
+0110 REM 12345678901234567890123456789012345678901234567890  <---- (See IMPORTANT note below)
+1000 DEFPROC R1()
+.... your logic for joystick 1's RIGHT direction
+1090 ENDPROC
+1100 DEFPROC L1()
+.... your logic for joystick 1's LEFT direction
+1190 ENDPROC
+1200 DEFPROC D1()
+.... your logic for joystick 1's DOWN direction
+1290 ENDPROC
+1300 DEFPROC U1()
+.... your logic for joystick 1's UP direction
+1390 ENDPROC
+1400 DEFPROC F1()
+.... your logic for joystick 1's FIRE 1 action
+1490 ENDPROC
+1500 DEFPROC F2()
+.... your logic for joystick 1's FIRE 2 action
+1590 ENDPROC
+1600 DEFPROC F3()
+.... your logic for joystick 1's FIRE 3 action
+1690 ENDPROC
+
+IMPORTANT: In case callback is set to 1, the very next line (after the one where DRIVER is called) in the NextBASIC program will be used to place the PROC calls.
+           So, make sure that line exits and it is meaningless like the one used in this example (a REM statement filled with 50 characters).
+	   The Game Input Driver will change next line's staments on the fly to place all PROC calls needed, every time it is executed. (Yeah, it sounds trickery but it works!!!)
+
+Check out the input_drv.bas file in the driver's repository to see an working example on how to use this feature.
+
+============================
+Changing the custom keyboard 
+============================
+
+There is a default custom keyboard which provides the very commom layout QAOP (with SPACE as FIRE 1 and M as FIRE 2).
+It is possible to change these keyboard mappings to suit any preferences.
+
+DRIVER 00, 6, x, y
+
+where x can be:
+
+0 - RIGHT key
+1 - LEFT key
+2 - DOWN key
+3 - UP key
+4 - FIRE 1 key
+5 - FIRE 2 key
+
+and y is the char code for the key to be mapped.
+
+Note: Changes to custom keyboard mapping are in affect until the driver is uninstalled or the Next is rebooted.
+
+TIP: if you want to use the new cursor keys on the Next's keyboard as a custom keyboard, use the keys 5678 to map LEFT, DOWN, UP and RIGHT, respectively.

@@ -1,0 +1,211 @@
+#program input_drv
+#autoline 10,10
+#autostart
+
+##########################################
+# Demo for the NextBASIC Game Input Driver
+# By Paulo Silva
+#
+# October, 2020
+#
+# https://github.com/paulossilva/gameinput
+#
+##########################################
+
+RUN AT 2
+##############################
+# Install Input Driver
+# - Need to install only once. Can be uninstalled with dot command .uninstall
+# - Upon installation, the driver changes the Next's joystick settings to
+#   Joystick 1 - Kempston 1
+#   Joystick 2 - Kempston 2
+##############################
+.install "input.drv"
+
+; Demo initialization
+LAYER 1,1: PRINT CHR$ 30; CHR$ 8
+CLS
+DIM j$(7,13)
+RESTORE
+FOR i=1 TO 7
+  READ j$(i)
+NEXT i
+DIM m$(6,8)
+FOR i=1 TO 6
+  READ m$(i)
+NEXT i
+
+
+################################
+# Read current joystick settings
+# DRIVER 51, 1 TO %a [,%b]
+# - Returns which joystick/keyboard settings are defined for left and right joystick ports.
+# - First return value holds left joystick (Joystick 1) selection and the second one, the right joystick selection (Joystick 2). 
+################################
+DRIVER 51,1 TO %a,%b
+
+; Main loop
+REPEAT
+  PROC PrintSettings()
+  IF INKEY$ ="," THEN PROC ChangeJoystick1()
+  IF INKEY$ ="." THEN PROC ChangeJoystick2()
+  IF INKEY$ = CHR$ (12) THEN PROC RedefineKeys()
+  PROC PrintJoysticks()
+  PROC ReadJoystick1()
+  PROC ReadJoystick2()
+REPEAT UNTIL 0
+
+DEFPROC PrintSettings()
+  PRINT AT 0,4;"Joystick 1"; AT 0,20;"Joystick 2"
+  FOR %i=1 to 7
+    j=%i
+    PRINT AT %i+1,2;inverse %i=a;j$(j)
+    print at %i+1,18;inverse %i=b;j$(j)
+  NEXT %i
+  INVERSE 0
+  PRINT AT 10,2;"<,> chg Joy 1"; AT 10,18;"<.> chg Joy 2"
+  print at 11,2;"<DEL> redefine keys"
+ENDPROC
+DEFPROC PrintJoysticks()
+  INVERSE 0
+  PRINT AT 13,7;"UP"; AT 13,23;"UP"
+  PRINT AT 15,1;"LEFT"; AT 15,11;"RIGHT"; at 15,17;"LEFT"; AT 15,27;"RIGHT"
+  PRINT AT 17,6;"DOWN"; AT 17,22;"DOWN"
+  PRINT AT 19,2;"FIRE1"; AT 19,10;"FIRE2"; AT 19,18;"FIRE1"; AT 19,26;"FIRE2"
+  PRINT AT 20,6;"FIRE3"; AT 20,22;"FIRE3"
+  INVERSE 1
+ENDPROC
+DEFPROC ChangeJoystick1()
+  %a=%a+1
+  IF %a=8 THEN %a=1
+  DRIVER 51,2,%a
+ENDPROC
+DEFPROC ChangeJoystick2()
+  %b=%b+1
+  IF %b=8 THEN %b=1
+  DRIVER 51,3,%b
+ENDPROC
+
+#########################################
+#  Read Joystick 1
+#  DRIVER 51, 4 [,callback] [TO %c]
+#  - callback: 1 - creates PROC's calls for each direction/button pressed (no need to bitmask and test the returned value from joystick/keyboard) (optional, but strongly recommended)
+#  - %c: value read from joystick/keyboard 1 (optional, needed only if you NEED to test specific bits)
+#  IMPORTANT: In case callback is set to 1, the very next line (after the one where DRIVER is called) in the NextBASIC program will be used to place the PROC calls.
+#             So, make sure that line exits and it's meaningless like the one used in this demo (a REM statement filled with 50 characters)
+#########################################
+DEFPROC ReadJoystick1()
+  DRIVER 51,4,1 TO %c
+  REM 12345678901234567890123456789012345678901234567890
+  PROC PrintBits()
+ENDPROC
+DEFPROC ReadJoystick2()
+  DRIVER 51,5,1
+  REM 12345678901234567890123456789012345678901234567890
+ENDPROC
+##############################
+# PROCs called by Input Driver
+##########################################
+# Joystick 1 callback procedures
+# - MUST use these exactly procedure names
+##########################################
+DEFPROC U1()
+  PRINT AT 13,7; INK 2;"UP"
+ENDPROC
+DEFPROC L1()
+  PRINT AT 15,1; INK 2;"LEFT"
+ENDPROC
+DEFPROC D1()
+  PRINT AT 17,6; INK 2;"DOWN"
+ENDPROC
+DEFPROC R1()
+  PRINT AT 15,11; INK 2;"RIGHT"
+ENDPROC
+DEFPROC F1()
+  PRINT AT 19,2; INK 2;"FIRE1"
+ENDPROC
+DEFPROC F2()
+  PRINT AT 19,10; INK 2;"FIRE2"
+ENDPROC
+DEFPROC F3()
+  PRINT AT 20,6; INK 2;"FIRE3"
+ENDPROC
+##########################################
+# Joystick 2 callback procedures
+# - MUST use these exactly procedure names
+##########################################
+DEFPROC U2()
+  PRINT AT 13,23; INK 2;"UP"
+ENDPROC
+DEFPROC L2()
+  PRINT AT 15,17; INK 2;"LEFT"
+ENDPROC
+DEFPROC D2()
+  PRINT AT 17,22; INK 2;"DOWN"
+ENDPROC
+DEFPROC R2()
+  PRINT AT 15,27; INK 2;"RIGHT"
+ENDPROC
+DEFPROC F4()
+  PRINT AT 19,18; INK 2;"FIRE1"
+ENDPROC
+DEFPROC F5()
+  PRINT AT 19,26; INK 2;"FIRE2"
+ENDPROC
+DEFPROC F6()
+  PRINT AT 20,22; INK 2;"FIRE3"
+ENDPROC
+DEFPROC PrintBits()
+  c$="00000000"
+  for i=1 to 8
+    IF %c&1 THEN c$(9-i)="1"
+    %c=%c>>1
+  NEXT i
+  PRINT at 22,3;INVERSE 1;"BYTE READ 1";INVERSE 0;AT 23,4;c$
+ENDPROC
+
+##########################
+# Redefine custom keyboard
+#  DRIVER 51, 6, x, y
+#  
+#  where x can be:
+#  
+#  0 - RIGHT key
+#  1 - LEFT key
+#  2 - DOWN key
+#  3 - UP key
+#  4 - FIRE 1 key
+#  5 - FIRE 2 key
+#
+#  and y is the char code for the key to be mapped.
+###########################
+DEFPROC RedefineKeys()
+  CLS
+  PRINT "Redefine CUSTOM keyboard"
+  PRINT "(Kempston1/Megadrive1 in Joy 1)"
+  PRINT
+  PAUSE 1
+  FOR i=1 TO 6
+    PRINT m$(i);
+    PAUSE 0: PROC GetKey() TO l$
+    PRINT l$
+    DRIVER 51,6,i-1, CODE l$
+  NEXT i
+  PRINT
+  PRINT "Press any key to continue...": PAUSE 0
+  CLS
+ENDPROC
+DEFPROC GetKey()
+  REPEAT
+    l$=inkey$
+  REPEAT UNTIL l$ <> ""
+ENDPROC =l$
+; String arrays
+DATA "1 Sinclair 2"
+DATA "2 Kempston 2"
+DATA "3 Kempston 1"
+DATA "4 Megadrive 1"
+DATA "5 Cursor"
+DATA "6 Megadrive 2"
+DATA "7 Sinclair 1"
+DATA "RIGHT : ","LEFT  : ","DOWN  : ","UP    : ","FIRE1 : ","FIRE2 : "
