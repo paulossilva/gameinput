@@ -18,9 +18,9 @@
 ;
 ; ******************************************************
 ;
-;   This driver aims to ease using game controls in NextBASIC programs by providing an easy-to-use and consistent API
-;   which prevents the programmer from dealing with joystick and keyboard ports, bit masking and other low level details.
-;   Even better, the Game Input Driver provides a way to call predefined NextBASIC procedures (PROCs) for you so that you won't
+;   This driver aims to ease game control programming in NextBASIC by providing an easy-to-use and consistent API,
+;   which prevents the programmer from dealing with low level details such as joystick/keyboard ports, bit masking, key mapping etc.
+;   Even better, the Game Input Driver provides a way to call predefined NextBASIC procedures (PROCs) for you, so that there's no
 ;   need to test input data read from joystick or keyboard.
 ;   Read the Driver's API documentation for more detail.
 ;
