@@ -54,3 +54,5 @@ And that's it!! Really!!
 
 Read on the [API Documentation](https://github.com/paulossilva/gameinput/blob/master/docs/inputDriver_API.txt) on the docs folder and check out the Demo file [input_drv.bas](https://github.com/paulossilva/gameinput/blob/master/input_drv.txt) to see the driver in action and learn more on how to use it.
 
+# Note
+This driver doesn't have an official ZXNextOS ID. I'm using id number 51 for test purposes only.
