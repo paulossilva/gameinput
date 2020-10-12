@@ -4,11 +4,30 @@ By Paulo Silva
 October, 2020
 ===========================
 
-This driver aims to ease game control programming in NextBASIC by providing an easy-to-use and consistent API,
+This driver aims to ease game controller programming in NextBASIC by providing an easy-to-use and consistent API,
 which prevents the programmer from dealing with low level details such as joystick/keyboard ports, bit masking, key mapping etc.
 Even better, the Game Input Driver provides a way to call predefined NextBASIC procedures (PROCs) for you, so that there's no
 need to test input data read from joystick or keyboard.
 
+=====================
+Installing the driver
+=====================
+
+In order to be used, a NextZXOS driver must be installed first. You do that using the dot command .install <driver_filename>.
+Conversely, to unisntall an already installed driver, use .uninstall <driver_filename>.
+
+================
+Using the driver
+================
+
+Once installed, you can use the Driver's API to access its features. You do that using the NextBASIC's DRIVER command,
+passing the driver's id and a couple of optional parameters:
+
+DRIVER driver_id [, value1[, value2]] [TO %return_value1 [, %return_value2]]
+
+As you can see, a driver call may return values back to your program.
+
+The allocated id for the Game Input driver is 125.
 
 ====================================
 Reading joystick settings (REG 0x05)
@@ -117,7 +136,7 @@ IMPORTANT: In case callback is set to 1, the very next line (after the one where
            So, make sure that line exits and it is meaningless like the one used in this example (a REM statement filled with 50 characters).
 	   The Game Input Driver will change next line's staments on the fly to place all PROC calls needed, every time it is executed. (Yeah, it sounds trickery but it works!!!)
 
-IMPORTANT 2: This feature will not work when called within a BANK. However, this will probably not be a problem as you will use this feature in a game main loop.
+IMPORTANT 2: This feature will not work when called within a BANK. However, this will probably not be a problem as you will use this feature in a game main loop, which is recommended to be placed in the main BASIC program.
 
 Check out the input_drv.bas file in the driver's repository to see an working example on how to use this feature.
 
