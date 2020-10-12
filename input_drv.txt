@@ -38,11 +38,11 @@ NEXT i
 
 ################################
 # Read current joystick settings
-# DRIVER 51, 1 TO %a [,%b]
+# DRIVER 125, 1 TO %a [,%b]
 # - Returns which joystick/keyboard settings are defined for left and right joystick ports.
 # - First return value holds left joystick (Joystick 1) selection and the second one, the right joystick selection (Joystick 2). 
 ################################
-DRIVER 51,1 TO %a,%b
+DRIVER 125,1 TO %a,%b
 
 ; Main loop
 REPEAT
@@ -78,29 +78,29 @@ ENDPROC
 DEFPROC ChangeJoystick1()
   %a=%a+1
   IF %a=8 THEN %a=1
-  DRIVER 51,2,%a
+  DRIVER 125,2,%a
 ENDPROC
 DEFPROC ChangeJoystick2()
   %b=%b+1
   IF %b=8 THEN %b=1
-  DRIVER 51,3,%b
+  DRIVER 125,3,%b
 ENDPROC
 
 #########################################
 #  Read Joystick 1
-#  DRIVER 51, 4 [,callback] [TO %c]
+#  DRIVER 125, 4 [,callback] [TO %c]
 #  - callback: 1 - creates PROC's calls for each direction/button pressed (no need to bitmask and test the returned value from joystick/keyboard) (optional, but strongly recommended)
 #  - %c: value read from joystick/keyboard 1 (optional, needed only if you NEED to test specific bits)
 #  IMPORTANT: In case callback is set to 1, the very next line (after the one where DRIVER is called) in the NextBASIC program will be used to place the PROC calls.
 #             So, make sure that line exits and it's meaningless like the one used in this demo (a REM statement filled with 50 characters)
 #########################################
 DEFPROC ReadJoystick1()
-  DRIVER 51,4,1 TO %c
+  DRIVER 125,4,1 TO %c
   REM 12345678901234567890123456789012345678901234567890
   PROC PrintBits()
 ENDPROC
 DEFPROC ReadJoystick2()
-  DRIVER 51,5,1
+  DRIVER 125,5,1
   REM 12345678901234567890123456789012345678901234567890
 ENDPROC
 ##############################
@@ -166,7 +166,7 @@ ENDPROC
 
 ##########################
 # Redefine custom keyboard
-#  DRIVER 51, 6, x, y
+#  DRIVER 125, 6, x, y
 #  
 #  where x can be:
 #  
@@ -189,7 +189,7 @@ DEFPROC RedefineKeys()
     PRINT m$(i);
     PAUSE 0: PROC GetKey() TO l$
     PRINT l$
-    DRIVER 51,6,i-1, CODE l$
+    DRIVER 125,6,i-1, CODE l$
   NEXT i
   PRINT
   PRINT "Press any key to continue...": PAUSE 0

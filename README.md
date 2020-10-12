@@ -20,7 +20,6 @@ DEFPROC ReadJoystick()
   IF %k=5 THEN PROC right(): PROC down(): ENDPROC
   IF %k=10 THEN PROC left(): PROC up(): ENDPROC
   IF %k=6 THEN PROC left(): PROC down(): ENDPROC
-
 ENDPROC   
 ```
 and if we need to read from keyboard, more code is needed:
@@ -47,12 +46,10 @@ More complexity would be added if you want to let the player customize the keys 
 With the Game Input Driver, you can replace all the above code with only a couple of lines:
 
 ```
-DRIVER ID, 4, 1
+DRIVER 125, 4, 1
 REM 12345678901234567890123456789012345678901234567890
 ```
 And that's it!! Really!!
 
 Read on the [API Documentation](https://github.com/paulossilva/gameinput/blob/master/docs/inputDriver_API.txt) on the docs folder and check out the Demo file [input_drv.bas](https://github.com/paulossilva/gameinput/blob/master/input_drv.txt) to see the driver in action and learn more on how to use it.
 
-# Note
-This driver doesn't have an official ZXNextOS ID. I'm using id number 51 for test purposes only.

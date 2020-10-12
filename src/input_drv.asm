@@ -37,7 +37,7 @@ relocs  equ     (reloc_end-reloc_start)/2
 
         defm    "NDRV"          ; .DRV file signature
 
-        defb    $33	        ; DRIVER ID 0x31 assigned by Garry Lancaster
+        defb    $7d	        ; DRIVER ID 0x7d assigned by Garry Lancaster
 				; 7-bit unique driver id in bits 0..6
                                 ; bit 7=1 if to be called on IM1 interrupts
 
