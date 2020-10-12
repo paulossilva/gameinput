@@ -14,7 +14,12 @@ Installing the driver
 =====================
 
 In order to be used, a NextZXOS driver must be installed first. You do that using the dot command .install <driver_filename>.
+
+.install "input.drv"
+
 Conversely, to unisntall an already installed driver, use .uninstall <driver_filename>.
+
+.uninstall "input.drv"
 
 ================
 Using the driver
@@ -106,7 +111,7 @@ Just create and fill in the PROCs with your own logic, following the name patter
 PROC names used are: R1(), L1(), D1(), U1(), F1(), F2(), F3(), for joystick 1's right, left, down and up directions and fire buttons 1, 2 and 3, respectively.
 Likewise, name pattern for joystick 2 is R2(), L2(), D2(), U2(), F4(), F5(), F6().
 
-Use the following example as a tamplate:
+Use the following example as a template:
 
 0100 DRIVER 125, 4, 1
 0110 REM 12345678901234567890123456789012345678901234567890  <---- (See IMPORTANT note below)
@@ -134,7 +139,8 @@ Use the following example as a tamplate:
 
 IMPORTANT: In case callback is set to 1, the very next line (after the one where DRIVER is called) in the NextBASIC program will be used to place the PROC calls.
            So, make sure that line exits and it is meaningless like the one used in this example (a REM statement filled with 50 characters).
-	   The Game Input Driver will change next line's staments on the fly to place all PROC calls needed, every time it is executed. (Yeah, it sounds trickery but it works!!!)
+	   The Game Input Driver will change next line's staments on the fly to place all PROC calls needed, every time it is executed.
+	   Yeah, it sounds trickery but it works!!!
 
 IMPORTANT 2: This feature will not work when called within a BANK. However, this will probably not be a problem as you will use this feature in a game main loop, which is recommended to be placed in the main BASIC program.
 
