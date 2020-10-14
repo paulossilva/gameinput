@@ -47,8 +47,8 @@ DRIVER 125,1 TO %a,%b
 ; Main loop
 REPEAT
   PROC PrintSettings()
-  IF INKEY$ ="," THEN PROC ChangeJoystick1()
-  IF INKEY$ ="." THEN PROC ChangeJoystick2()
+  IF INKEY$ ="," THEN PROC ChangeJoystick1(): DRIVER 125,1 TO %a,%b
+  IF INKEY$ ="." THEN PROC ChangeJoystick2(): DRIVER 125,1 TO %a,%b
   IF INKEY$ = CHR$ (12) THEN PROC RedefineKeys()
   PROC PrintJoysticks()
   PROC ReadJoystick1()

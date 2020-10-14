@@ -18,7 +18,7 @@
 ;
 ; ******************************************************
 ;
-;   This driver aims to ease game control programming in NextBASIC by providing an easy-to-use and consistent API,
+;   This driver aims to ease game controller programming in NextBASIC by providing an easy-to-use and consistent API,
 ;   which prevents the programmer from dealing with low level details such as joystick/keyboard ports, bit masking, key mapping etc.
 ;   Even better, the Game Input Driver provides a way to call predefined NextBASIC procedures (PROCs) for you, so that there's no
 ;   need to test input data read from joystick or keyboard.
@@ -27,7 +27,7 @@
 ; * Driver API calls:
 ;   - 1: read joystick port settings
 ;   - 2: change settings for joystick 1 (left joystick)
-;   - 3: change settings for joystick 2 (left joystick)
+;   - 3: change settings for joystick 2 (right joystick)
 ;   - 4: read input from left joystick/keyboard
 ;   - 5: read input from right joystick/keyboard
 ;   - 6: map custom key
@@ -64,27 +64,22 @@ Read_Settings:
                 ld      d, b                    ; b = 0 -> d = 0
 reloc_read_settings_1:
                 call    Read_Reg05
-                ld      b, a
+                ld      e, a                    ; preserve settings
                 and     $32                     ; select Joystick 2
                 rlca                            ; adjust bitmask to Josystick 1's pattern 
                 rlca
-reloc_read_settings_2:
-                call    Setting_to_id
-                ld      e, c                    ; store value in DE
-                ld      a, b
-                and     $c8                     ; select Joystick 1
                 ld      b, d                    ; b = 0
-Setting_to_id:                                  ; rotate setting value to the least 3 bits in c register
-                ld      c, d                    ; c = 0
-                rlca
-                rl      c                       ; carry to c
-                rlca
-                rl      c                       ; carry to c
-                rlca
-                rlca
-                rlca
-                rl      c                       ; carry to c (00000xyz)
-                inc     c
+reloc_read_settings_2:
+                call Lookup_Settings
+                ld      a, e
+                ld      e, c                    ; DE = Joystick 2 settings  
+                and     $c8                     ; select Joystick 1
+Lookup_Settings:
+reloc_read_settings_3:
+                ld      hl, Settings_table_end
+                ld      c, 7
+                cpdr
+                inc     c                       ; c -> 1..7
                 ret
 ; ******************************************************
 ; Read NextREG 05 subroutine
@@ -99,10 +94,24 @@ Read_Reg05:
                 ld      b, $25                  ; bc = $253b                 
                 in      a, (c)
                 ret
+Settings_table_start:
+                db      %00000000               ; Sinclair 2
+                db      %00001000               ; Kempston 2
+                db      %01000000               ; Kempston 1
+                db      %01001000               ; Megadrive 1
+                db      %10000000               ; Cursor
+                db      %10001000               ; Megadrive 2
+Settings_table_end:
+                db      %11000000               ; Sinclair 1
 ; ******************************************************
 ; Write joystick settings
+;
+; First, it looks up the joystick/keyboard's reading routine entry point and stores it in memory.
+; Afterwards, it deals with the settings value and write it on NextReg 05.
+; 
 ; Input:
 ;   DE - Joystick settings value
+; Locals:
 ;   HL - pointer to joystick settings cache
 ; ******************************************************
 Write_Settings:
@@ -128,24 +137,18 @@ reloc_write_settings_3:
                 ld      (PORT2), de
 jump_write:
                 dec     a                       ; settings range 0..6
-Id_to_setting:                                  ; rotate joystick ID to bitmask
-                rrca
-                rr      d
-                srl     d
-                srl     d
-                rrca
-                rr      d
-                rrca
-                rr      d                       ; d - Joystick 1 settings (xy00z000)
+reloc_write_settings_4:
+                ld      hl, Settings_table_start
+                add     hl, a
+                ld      d, (hl)                 ; d - Joystick 1 settings (xy00z000)
                 ld      e, $37                  ; e - Joystick 1 bitmask
                 bit     0, c                    ; if call id = 3, adjust rotation
                 jr      z, Write_Reg05    
                 srl     d                       ; Adjust settings and bitmask for Joystick 2
                 srl     d
-                rrc     e
-                rrc     e
+                ld      e, $cd
 Write_Reg05:
-reloc_write_settings_4:
+reloc_write_settings_5:
                 call    Read_Reg05              ; acc - register contents
                 and     e                       ; mask unchanged bits
                 or      d                       ; add settings bits
@@ -239,10 +242,9 @@ Return:
                 ld      a, d                    ; preserve input byte read
                 ex      af, af'
                 pop     bc                      ; restore call id
-                ld      a, d                    ; prepare to call callback subroutine
                 dec     e                       ; before return, check callback parameter
 reloc_read_input_6:
-                call    p, Callback             ; create callback calls
+                call    p, Callback             ; create callbacks
                 ex      af, af'
                 ld      c, a                    ; return joystick moves and keys pressed to NextBASIC
                 ld      b, 0
@@ -274,18 +276,24 @@ Read_KEY:
                 ret                             
 ;*************************************************
 ; Creates callbacks to PROCs
-; a  - input byte
+; Input:
+; d  - input byte
 ; c  - call id
+; local:
 ; de - pointer to next NextBASIC line
 ; hl - pointer to statement to add
 ;*************************************************
 Callback:
+                ld      a, (NXTBNK)             
+                cpl
+                ret     nz                      ; Do nothing if running in a BANK (NXTLIN != $ff)
+                ld      a, d                       
 		ld	hl, (NXTLIN)		; Next BASIC line
 		add	hl, 4			; 1st statement
 		ex	hl, de
 reloc_read_input_7:
 		ld	hl, PROCS1
-                bit     0, c                    ; check call id for left joysctick
+                bit     0, c                    ; check call id for left joystick
                 jr      z, jump_procs2
 reloc_read_input_8:
                 ld      hl, PROCS2
@@ -293,7 +301,7 @@ jump_procs2:
                 ld      c, 7                    ; # of PROC calls to add
 add_proc_loop:
 reloc_read_input_9:
-                call    add_proc                ; add PROC RIGHT() call
+                call    add_proc                
                 dec     c
                 jr      nz, add_proc_loop
 end_proc:
@@ -310,6 +318,7 @@ next_proc:
                 add     hl, bc                  ; adjust pointer to next PROC
                 pop     bc
                 ret
+NXTBNK          defl    $5B77
 NXTLIN		defl	$5C55
 PROCS1:
         	db	$93, "R1()", $3a
@@ -344,7 +353,7 @@ Map_Customkey:
                 scf                             ; set carry flag to indicate failure
                 ret     m
 reloc_map_custom_1:
-                ld      ix, CUSTOM              ; pointer to custom key data
+                ld      ix, CUSTOM              ; pointer to custom key mappings
                 ld      d, b                    ; b = 0 -> d = 0
                 ld      a, e
                 add     e
@@ -443,10 +452,12 @@ reloc_start:
         defw	reloc_api_entry_1+2
         defw	reloc_read_settings_1+2
         defw    reloc_read_settings_2+2
+        defw    reloc_read_settings_3+2
         defw    reloc_write_settings_1+2
         defw    reloc_write_settings_2+3
         defw    reloc_write_settings_3+3
         defw    reloc_write_settings_4+2
+        defw    reloc_write_settings_5+2
         defw    reloc_read_input_1+3
         defw    reloc_read_input_2+3
         defw    reloc_read_input_3+2
