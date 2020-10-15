@@ -41,15 +41,33 @@ DEFPROC ReadKeyboard()
 ENDPROC 
 ```
 
-More complexity would be added if you want to let the player customize the keys used to control the game.
-
 With the Game Input Driver, you can replace all the above code with only a couple of lines:
 
 ```
-DRIVER 125, 4, 1
-REM 12345678901234567890123456789012345678901234567890
+DEFPROC ReadJoystickKeyboard()
+  DRIVER 125, 4, 1
+  REM 12345678901234567890123456789012345678901234567890
+ENDPROC
 ```
 And that's it!! Really!!
+
+More complexity would be added to your code if you want to let the player customise the keys used to control the game. Usually you would have to deal with I/O ports, masks and key mappings.
+However, with the help of the Game Input Driver, all you need to do is just say what keys you want to map:
+
+```
+PROC SetCustomKeys()
+  DRIVER 125, 6, 0, CODE "d": REM RIGHT
+  DRIVER 125, 6, 1, CODE "a": REM LEFT
+  DRIVER 125, 6, 2, CODE "s": REM DOWN
+  DRIVER 125, 6, 3, CODE "w": REM UP
+  DRIVER 125, 6, 4, CODE "p": REM FIRE 1
+  DRIVER 125, 6, 5, CODE "o": REM FIRE 2
+ENDPROC
+```
+
+And you're good to go!!
+
+Finally, your NextBASIC program will grant support for all joystick interfaces supported by the ZX Spectrum Next firmware for free, including Kempston, Megadrive, Sinclair and Cursor, on both joystick ports. Indeed, you can let the player decide which interface he want to use in your game and the Game Input Driver will set everything up for you. 
 
 Read on the [API Documentation](https://github.com/paulossilva/gameinput/blob/master/docs/inputDriver_API.txt) on the docs folder and check out the Demo file [input_drv.bas](https://github.com/paulossilva/gameinput/blob/master/input_drv.txt) to see the driver in action and learn more on how to use it.
 
