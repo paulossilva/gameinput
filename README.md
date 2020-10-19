@@ -73,4 +73,4 @@ Read on the [API Documentation](https://github.com/paulossilva/gameinput/blob/ma
 
 The following is a recording of the [demo program](https://github.com/paulossilva/gameinput/blob/master/input_drv.txt):
 
-[![Alternate Text]({https://i9.ytimg.com/vi/NbpzBdyLtQs/mq2.jpg?sqp=CKiBuPwF&rs=AOn4CLC0w2LNdz_tEyakZw7cAf4d96J21A})]({https://youtu.be/NbpzBdyLtQs} "Game Input Demo")
+[![Game Input Demo](https://i9.ytimg.com/vi/NbpzBdyLtQs/mq2.jpg?sqp=CKiBuPwF&rs=AOn4CLC0w2LNdz_tEyakZw7cAf4d96J21A)](https://youtu.be/embed/NbpzBdyLtQs "Game Input Demo")
