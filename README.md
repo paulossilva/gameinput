@@ -67,7 +67,7 @@ ENDPROC
 
 And you're good to go!!
 
-Finally, your NextBASIC program will grant support for all joystick interfaces supported by the ZX Spectrum Next firmware for free, including Kempston, Megadrive, Sinclair and Cursor, on both joystick ports. Indeed, you can let the player decide which interface he want to use in your game and the Game Input Driver will set everything up for you. 
+Finally, your NextBASIC program will grant support for all joystick interfaces supported by the ZX Spectrum Next firmware for free, including Kempston, Megadrive, Sinclair and Cursor, on both joystick ports. Indeed, you can let the player decide which interface he wants to use in your game and the Game Input Driver will set everything up for you. 
 
 Read on the [API Documentation](https://github.com/paulossilva/gameinput/blob/master/docs/inputDriver_API.txt) on the docs folder and check out the Demo file [input_drv.bas](https://github.com/paulossilva/gameinput/blob/master/input_drv.txt) to see the driver in action and learn more on how to use it.
 
