@@ -73,10 +73,10 @@ Read on the [API Documentation](https://github.com/paulossilva/gameinput/blob/ma
 
 The following is a recording of the [demo program](https://github.com/paulossilva/gameinput/blob/master/input_drv.txt) in action:
 
-[![Game Input Demo](https://i9.ytimg.com/vi/NbpzBdyLtQs/mq2.jpg?sqp=CKiBuPwF&rs=AOn4CLC0w2LNdz_tEyakZw7cAf4d96J21A)](https://youtu.be/NbpzBdyLtQs "Game Input Demo")
+[![Game Input Demo](/etc/video1min.jpg)](https://youtu.be/NbpzBdyLtQs "Game Input Demo")
 
 And here is a video showcasing the speed improvement obtained with the use of the driver in a NextBASIC game:
 
-[![Game Input Comparison](https://i9.ytimg.com/vi/8Hs9BYerIzg/mq2.jpg?sqp=CNiKuPwF&rs=AOn4CLCyZerAVtbsoqDDOk-nfPKqMgZxjw)](https://youtu.be/8Hs9BYerIzg "Game Input Comparison")
+[![Game Input Comparison](/etc/video2min.jpg)](https://youtu.be/8Hs9BYerIzg "Game Input Comparison")
 
 Left video is using Game Input driver and the right one isn't. Numbers in the screen's bottom are FPS average (1st number) and any frame rate below a minimum threshold (which I've set to 16 fps for CSpect and 25 fps in real hardware), which also makes the border to blink red. Both videos start in sync but the one in the right lags behind a bit towards the end, which is an effect of a lower frame rate. In this experiment, using Game Input alone gave me a 16% increase in the frame rate and not a single frame rate below the minimum rate.
