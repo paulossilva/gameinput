@@ -137,12 +137,15 @@ Use the following example as a template:
 .... your logic for joystick 1's FIRE 3 action
 1690 ENDPROC
 
-IMPORTANT: In case callback is set to 1, the very next line (after the one where DRIVER is called) in the NextBASIC program will be used to place the PROC calls.
+IMPORTANT NOTE: In case callback is set to 1, the very next line (after the one where DRIVER is called) in the NextBASIC program will be used to place the PROC calls.
            So, make sure that line exits and it is meaningless like the one used in this example (a REM statement filled with 50 characters).
 	   The Game Input Driver will change next line's staments on the fly to place all PROC calls needed, every time it is executed.
 	   Yeah, it sounds trickery but it works!!!
 
-IMPORTANT 2: This feature will not work when called within a BANK. However, this will probably not be a problem as you will use this feature in a game main loop, which is recommended to be placed in the main BASIC program.
+IMPORTANT NOTE 2: This feature will not work when called within a BANK. However, this will probably not be a problem as you will use this feature in a game main loop, which is recommended to be placed in the main BASIC program.
+
+IMPORTANT NOTE 3: It is a good practice to define all possible PROCs the Game Input driver may call, including the ones you may don't intent to use, as any user can connect a Megadrive pad and press FIRE 3 button, for instance.
+                  This would cause an error in NextBASIC because it wouldn't find a matching DEFPROC statement.
 
 Check out the input_drv.bas file in the driver's repository to see an working example on how to use this feature.
 
@@ -168,4 +171,5 @@ and y is the char code for the key to be mapped.
 
 Note: Changes to custom keyboard mapping are in affect until the driver is uninstalled or the Next is rebooted.
 
-TIP: if you want to use the new cursor keys on the Next's keyboard as a custom keyboard, use the keys 5678 to map LEFT, DOWN, UP and RIGHT, respectively.
+TIP: If you want to use the new cursor keys on the Next's keyboard as a custom keyboard, use the keys 5678 to map LEFT, DOWN, UP and RIGHT, respectively.
+     However, if you do that do not map SPACE as a FIRE button, because NextBASIC will recognise pressing a cursor key and SPACE key as BREAK, which would inadvertedly interrupt your program. 

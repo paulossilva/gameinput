@@ -49,7 +49,7 @@ reloc_api_entry_1:
                 jp      Map_Customkey
 bnot6:
                 bit     7,c                     ; Standard API $80 - install driver 
-                ld      de, $4205               ; set Kempston1 and Kempston 2 as default
+                ld      de, $4205               ; set Kempston 1 and Kempston 2 as default
                 jr      nz, Write_Reg05
 api_error:
                 scf
@@ -91,7 +91,7 @@ Read_Reg05:
                 ld      bc, $243b               ; reads REG $05
                 ld      a, $05                      
                 out     (c), a               
-                ld      b, $25                  ; bc = $253b                 
+                inc     b                       ; bc = $253b                 
                 in      a, (c)
                 ret
 Settings_table_start:
@@ -106,7 +106,7 @@ Settings_table_end:
 ; ******************************************************
 ; Write joystick settings
 ;
-; First, it looks up the joystick/keyboard's reading routine entry point and stores it in memory.
+; First, it looks up the joystick/keyboard reading routine's entry point and stores it in memory.
 ; Afterwards, it deals with the settings value and write it on NextReg 05.
 ; 
 ; Input:
@@ -156,7 +156,7 @@ reloc_write_settings_5:
                 ret
 ; ******************************************************
 ; Read Input
-; - Reads input from joystick port as defined in the firmware settings, which can have be of the following:
+; - Read input from joystick port as defined in the firmware settings, which can have be of the following:
 ;   * Kempston 1
 ;   * Kempston 2
 ;   * Megadrive 1
@@ -176,25 +176,27 @@ reloc_write_settings_5:
 ; hl   - points to mapped key data                
 ; ******************************************************
 Read_Input:
+                ld      b, e                    ; preserve callback parameter
                 push    bc                      ; preserve call id
-                ld      d, c                    
+                ld      b, c                    
 reloc_read_input_1:
-                ld      ix, (PORT1)             ; load jump address from cache
+                ld      hl, (PORT1)             ; load jump address from cache
                 bit     0, c
                 jr      z, jump_input
 reloc_read_input_2:
-                ld      ix, (PORT2)
+                ld      hl, (PORT2)
 jump_input:
 reloc_read_input_3:
-                ld      hl, CURSOR              ; keyboard mapping base address
-                ld      c, 12                   ; keyboard mappings offset (bc=12)
-                jp      (ix)
+                ld      de, CURSOR              ; keyboard mapping base address
+                ld      a, 12                   ; keyboard mappings offset
+                jp      (hl)
 Sinclair_2:
-                add     hl, bc
+                add     a                       ; de -> Sinclair_2
 Sinclair_1:
-                add     hl, bc
+                add     de, a                   ; de -> Sinclair_1
 Cursor:
-                ld      d, b                    ; b = 0 -> d = 0
+                ex      de, hl
+                ld      d, 0                    
                 jr      Keyboard
 Kempston_2:
 Megadrive_2:
@@ -204,9 +206,8 @@ Kempston_1:
 Megadrive_1:
                 ld      c, $1f                  ; bc = $xx1f
 Joystick:
-                ld      a, d                    ; call id
                 in      d, (c)
-                rrca                            ; After reading left joystick (call id=4), read CUSTOM keyboard
+                rrc     b                       ; After reading left joystick (call id=4), read CUSTOM keyboard
                 jr      c, Return
 reloc_read_input_4:
                 ld      hl, CUSTOM              
@@ -214,16 +215,16 @@ reloc_read_input_4:
 ; Read Keyboard mapped keys
 ; Input:
 ;   hl - keyboard mapping
+;    d - byte previously read from joystick or 0
 ; Output:
-;   d  - pressed keys (same pattern used in joystick)
+;    d - pressed keys (same pattern used in joystick)
 ; Locals:
 ; bc - keyboard port to read
 ; e, a - temps
 ; ******************************************************
 Keyboard:
                 ld      c, $fe
-                push    de
-                ld      e, b                    ; b = 0 -> e = 0                 
+                ld      e, 0                                     
                 ld      b, 6                    ; # of keys to read
 keyboard_loop:
                 push    bc
@@ -235,31 +236,26 @@ reloc_read_input_5:
                 srl     e                       ; no more keys to read, adjust e 
                 srl     e
                 ld      a, e
-                pop     de
                 or      d
                 ld      d, a
 Return:
+                pop     bc                      ; restore call id and callback parameter
+                dec     b                       ; before return, check callback parameter
                 ld      a, d                    ; preserve input byte read
-                ex      af, af'
-                pop     bc                      ; restore call id
-                dec     e                       ; before return, check callback parameter
+                push    af
 reloc_read_input_6:
-                call    p, Callback             ; create callbacks
-                ex      af, af'
+                call    z, Callback             ; create callbacks 
+                pop     af
                 ld      c, a                    ; return joystick moves and keys pressed to NextBASIC
                 ld      b, 0
-                and     a                       ; clear carry flag to indicate sucess
+                and     a                       ; clear carry flag to indicate success
                 ret
 ; *************************************************
-; Reads mapped key
+; Read mapped key
 ;
 ; hl - MSB of keyboard port to read (lookup table)
 ; c  - must have LSB of keyboard port (always $FE)
 ; hl+1 - bitmask used to identify the key press (lookup table)
-; a - mapped key condition
-;     0 - key pressed
-;     1 - key not pressed
-;
 ; Output:
 ; Carry Flag
 ;     0 - key not pressed
@@ -275,10 +271,11 @@ Read_KEY:
                 scf                             ; key pressed
                 ret                             
 ;*************************************************
-; Creates callbacks to PROCs
+; Create callbacks to PROCs
 ; Input:
 ; d  - input byte
 ; c  - call id
+; b  - 0
 ; local:
 ; de - pointer to next NextBASIC line
 ; hl - pointer to statement to add
@@ -286,7 +283,7 @@ Read_KEY:
 Callback:
                 ld      a, (NXTBNK)             
                 cpl
-                ret     nz                      ; Do nothing if running in a BANK (NXTLIN != $ff)
+                ret     nz                      ; Do nothing if running in a BANK (NXTBNK != $ff)
                 ld      a, d                       
 		ld	hl, (NXTLIN)		; Next BASIC line
 		add	hl, 4			; 1st statement
@@ -352,15 +349,13 @@ Map_Customkey:
                 sub     e
                 scf                             ; set carry flag to indicate failure
                 ret     m
-reloc_map_custom_1:
-                ld      ix, CUSTOM              ; pointer to custom key mappings
-                ld      d, b                    ; b = 0 -> d = 0
-                ld      a, e
-                add     e
-                ld      e, a
-                add     ix, de                  
-Lookup_key:
                 ld      a, l                    ; key to search for
+reloc_map_custom_1:
+                ld      hl, CUSTOM              ; pointer to custom key mappings
+                ld      d, b                    ; b = 0 -> d = 0
+                sla     e                       ; e+e
+                add     hl, de                  
+                push    hl
 reloc_map_custom_2:
                 ld      hl, KEYBOARD_MAP
                 ld      d, $fe                  ; 1st keyboard row
@@ -368,7 +363,7 @@ Lookup_row:
                 ld      bc, 5                   ; # of keys to lookup in a row
                 cpir                            ; do (HL)==A?; HL++; BC-- while (!Z && BC>0)
                 jr      z, Key_Found
-                rlc     d                       ; Key isn't in this row. Selects next row
+                rlc     d                       ; Key isn't in this row. Select next row
                 jr      c, Lookup_row           ; Lookup in the next one
                 scf                             ; Not found. Set carry flag to indicate failure
                 ret                              
@@ -379,9 +374,11 @@ Key_Found:
 Rotate_mask:
                 rlc     a
                 djnz    Rotate_mask             ; acc has bitmask
-                ld      (ix+00), d              ; save keyboard port for custom Key
-                ld      (ix+01), a              ; save bitmask for custom key
-                and     a                       ; clear carry flag to indicate sucess
+                pop     hl
+                ld      (hl), d                 ; save keyboard port for custom Key
+                inc     hl
+                ld      (hl), a                 ; save bitmask for custom key
+                and     a                       ; clear carry flag to indicate success
                 ret
 CUSTOM:                                         ; Keyboard port (MSB), bitmask     
                 db      $df, $01                ; RIGHT (P)
@@ -458,8 +455,8 @@ reloc_start:
         defw    reloc_write_settings_3+3
         defw    reloc_write_settings_4+2
         defw    reloc_write_settings_5+2
-        defw    reloc_read_input_1+3
-        defw    reloc_read_input_2+3
+        defw    reloc_read_input_1+2
+        defw    reloc_read_input_2+2
         defw    reloc_read_input_3+2
         defw    reloc_read_input_4+2
         defw    reloc_read_input_5+2
@@ -467,7 +464,7 @@ reloc_start:
         defw    reloc_read_input_7+2
         defw    reloc_read_input_8+2
         defw    reloc_read_input_9+2
-        defw    reloc_map_custom_1+3
+        defw    reloc_map_custom_1+2
         defw    reloc_map_custom_2+2
         defw    reloc_port1+1
         defw    reloc_port2+1
