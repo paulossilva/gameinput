@@ -7,6 +7,7 @@
                 OUTPUT  build/input.bin
 
                 org     $0000
+                relocate_start
 
 ; ******************************************************
 ; Game Input NextBASIC Driver
@@ -45,7 +46,6 @@ bnot3:          djnz    bnot4
 bnot4:          djnz    bnot5
                 jr      Read_Input              ; API call id = 5; read right joystick
 bnot5:          djnz    bnot6                   ; API call id = 6; maps custom key
-reloc_api_entry_1:
                 jp      Map_Customkey
 bnot6:
                 bit     7,c                     ; Standard API $80 - install driver 
@@ -62,20 +62,17 @@ api_error:
 ; ******************************************************
 Read_Settings:
                 ld      d, b                    ; b = 0 -> d = 0
-reloc_read_settings_1:
                 call    Read_Reg05
                 ld      e, a                    ; preserve settings
                 and     $32                     ; select Joystick 2
                 rlca                            ; adjust bitmask to Josystick 1's pattern 
                 rlca
                 ld      b, d                    ; b = 0
-reloc_read_settings_2:
                 call Lookup_Settings
                 ld      a, e
                 ld      e, c                    ; DE = Joystick 2 settings  
                 and     $c8                     ; select Joystick 1
 Lookup_Settings:
-reloc_read_settings_3:
                 ld      hl, Settings_table_end
                 ld      c, 7
                 cpdr
@@ -119,7 +116,6 @@ Write_Settings:
                 ld      a, e
                 and     $07
                 ret     z                       ; if e = 0, do nothing
-reloc_write_settings_1:
                 ld      hl, jump_table-2        ; store jump address in cache 
                 add     hl, de
                 add     hl, de                  
@@ -129,15 +125,12 @@ reloc_write_settings_1:
                 ld      l, c                    
                 bit     0, l                    ; joystick 1 ?
                 jr      nz, jump_port2
-reloc_write_settings_2:
                 ld      (PORT1), de
                 jr      jump_write
 jump_port2:
-reloc_write_settings_3:
                 ld      (PORT2), de
 jump_write:
                 dec     a                       ; settings range 0..6
-reloc_write_settings_4:
                 ld      hl, Settings_table_start
                 add     hl, a
                 ld      d, (hl)                 ; d - Joystick 1 settings (xy00z000)
@@ -148,7 +141,6 @@ reloc_write_settings_4:
                 srl     d
                 ld      e, $cd
 Write_Reg05:
-reloc_write_settings_5:
                 call    Read_Reg05              ; acc - register contents
                 and     e                       ; mask unchanged bits
                 or      d                       ; add settings bits
@@ -179,14 +171,11 @@ Read_Input:
                 ld      b, e                    ; preserve callback parameter
                 push    bc                      ; preserve call id
                 ld      b, c                    
-reloc_read_input_1:
                 ld      hl, (PORT1)             ; load jump address from cache
                 bit     0, c
                 jr      z, jump_input
-reloc_read_input_2:
                 ld      hl, (PORT2)
 jump_input:
-reloc_read_input_3:
                 ld      de, CURSOR              ; keyboard mapping base address
                 ld      a, 12                   ; keyboard mappings offset
                 jp      (hl)
@@ -209,7 +198,6 @@ Joystick:
                 in      d, (c)
                 rrc     b                       ; After reading left joystick (call id=4), read CUSTOM keyboard
                 jr      c, Return
-reloc_read_input_4:
                 ld      hl, CUSTOM              
 ; ******************************************************
 ; Read Keyboard mapped keys
@@ -228,7 +216,6 @@ Keyboard:
                 ld      b, 6                    ; # of keys to read
 keyboard_loop:
                 push    bc
-reloc_read_input_5:
                 call    Read_KEY                ; read a key and store it in e
                 rr      e
                 pop     bc
@@ -243,7 +230,6 @@ Return:
                 dec     b                       ; before return, check callback parameter
                 ld      a, d                    ; preserve input byte read
                 push    af
-reloc_read_input_6:
                 call    z, Callback             ; create callbacks 
                 pop     af
                 ld      c, a                    ; return joystick moves and keys pressed to NextBASIC
@@ -288,16 +274,13 @@ Callback:
 		ld	hl, (NXTLIN)		; Next BASIC line
 		add	hl, 4			; 1st statement
 		ex	hl, de
-reloc_read_input_7:
 		ld	hl, PROCS1
                 bit     0, c                    ; check call id for left joystick
                 jr      z, jump_procs2
-reloc_read_input_8:
                 ld      hl, PROCS2
 jump_procs2:
                 ld      c, 7                    ; # of PROC calls to add
 add_proc_loop:
-reloc_read_input_9:
                 call    add_proc                
                 dec     c
                 jr      nz, add_proc_loop
@@ -350,13 +333,11 @@ Map_Customkey:
                 scf                             ; set carry flag to indicate failure
                 ret     m
                 ld      a, l                    ; key to search for
-reloc_map_custom_1:
                 ld      hl, CUSTOM              ; pointer to custom key mappings
                 ld      d, b                    ; b = 0 -> d = 0
                 sla     e                       ; e+e
                 add     hl, de                  
                 push    hl
-reloc_map_custom_2:
                 ld      hl, KEYBOARD_MAP
                 ld      d, $fe                  ; 1st keyboard row
 Lookup_row:
@@ -417,24 +398,15 @@ KEYBOARD_MAP:
                 db      "y","u","i","o","p"     ; df - 11011111
                 db      "h","j","k","l",$0d     ; bf - 10111111
                 db      "b","n","m",$00," "     ; 7f - 01111111
-reloc_port1:
 PORT1:          dw      Kempston_1
-reloc_port2:
 PORT2:          dw      Kempston_2
 jump_table
-reloc_jump_table_1:
                 dw      Sinclair_2
-reloc_jump_table_2:
                 dw      Kempston_2
-reloc_jump_table_3:
                 dw      Kempston_1
-reloc_jump_table_4:
                 dw      Megadrive_1
-reloc_jump_table_5:
                 dw      Cursor
-reloc_jump_table_6:
                 dw      Megadrive_2
-reloc_jump_table_7:
                 dw      Sinclair_1
 
 ; this ensures the build is 512 long (not 100% sure why though - probably memory baseds)
@@ -445,34 +417,7 @@ reloc_jump_table_7:
 		defs    512-$
 	ENDIF
 
-reloc_start:
-        defw	reloc_api_entry_1+2
-        defw	reloc_read_settings_1+2
-        defw    reloc_read_settings_2+2
-        defw    reloc_read_settings_3+2
-        defw    reloc_write_settings_1+2
-        defw    reloc_write_settings_2+3
-        defw    reloc_write_settings_3+3
-        defw    reloc_write_settings_4+2
-        defw    reloc_write_settings_5+2
-        defw    reloc_read_input_1+2
-        defw    reloc_read_input_2+2
-        defw    reloc_read_input_3+2
-        defw    reloc_read_input_4+2
-        defw    reloc_read_input_5+2
-        defw    reloc_read_input_6+2
-        defw    reloc_read_input_7+2
-        defw    reloc_read_input_8+2
-        defw    reloc_read_input_9+2
-        defw    reloc_map_custom_1+2
-        defw    reloc_map_custom_2+2
-        defw    reloc_port1+1
-        defw    reloc_port2+1
-        defw    reloc_jump_table_1+1
-        defw    reloc_jump_table_2+1
-        defw    reloc_jump_table_3+1
-        defw    reloc_jump_table_4+1
-        defw    reloc_jump_table_5+1
-        defw    reloc_jump_table_6+1
-        defw    reloc_jump_table_7+1
-reloc_end:
+                relocate_end
+
+                ; -1 to target high-byte of words (requirement for NextZXOS driver ABI)
+                relocate_table -1

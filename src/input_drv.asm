@@ -20,9 +20,6 @@
 
         include "build/input.sym"
 
-relocs  equ     (reloc_end-reloc_start)/2
-
-
 ; ***************************************************************************
 ; * .DRV file header                                                        *
 ; ***************************************************************************
@@ -41,7 +38,7 @@ relocs  equ     (reloc_end-reloc_start)/2
 				; 7-bit unique driver id in bits 0..6
                                 ; bit 7=1 if to be called on IM1 interrupts
 
-        defb    relocs          ; number of relocation entries (0..255)
+        defb    relocate_count  ; number of relocation entries (0..255)
 
         defb    $80+$00         ; number of additional 8K DivMMC RAM banks
                                 ; required (0..8); call init/shutdown
