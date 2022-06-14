@@ -7,7 +7,7 @@
                 OUTPUT  build/input.bin
 
                 org     $0000
-                relocate_start
+                relocate_start high             ; MSB-mode of sjasmplus v1.20.0 to target high-byte relocation
 
 ; ******************************************************
 ; Game Input NextBASIC Driver
@@ -419,5 +419,4 @@ jump_table
 
                 relocate_end
 
-                ; -1 to target high-byte of words (requirement for NextZXOS driver ABI)
-                relocate_table -1
+                relocate_table
